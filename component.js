@@ -1,14 +1,29 @@
+// 函数描述组件
+const MyComponent = function () {
+  return {
+    tag: "div",
+    props: {
+      onClick: () => alert("hello"),
+    },
+    children: "click me",
+  };
+};
+
+// 虚拟DOM描述组件
 const vnode = {
-  tag: "div",
-  props: {
-    onClick: () => alert("hello"),
-    class: 'div',
-    style: 'color: red;' 
-  },
-  children: "click me component",
+  tag: MyComponent,
 };
 
 function renderer(vnode, container) {
+  if (typeof vnode.tag === "string") {
+    mountElement(vnode, container);
+  } else if (typeof vnode.tag === "function") {
+    // function说明是组件
+    mountComponent(vnode, container);
+  }
+}
+
+function mountElement(vnode, container) {
   // 使用 vnode.tag 作为标签名称创建 DOM 元素
   const el = document.createElement(vnode.tag);
   // 遍历 vnode.props，将属性、事件添加到 DOM 元素
@@ -20,7 +35,7 @@ function renderer(vnode, container) {
         vnode.props[key] // 事件处理函数
       );
     } else {
-      el.setAttribute(key, vnode.props[key])
+      el.setAttribute(key, vnode.props[key]);
     }
   }
 
@@ -36,5 +51,13 @@ function renderer(vnode, container) {
   // 将元素添加到挂载点下
   container.appendChild(el);
 }
+// 挂在组件
+function mountComponent(vnode, container) {
+    // 调用组件函数，获取组件需要渲染的虚拟dom
+    const subtree = vnode.tag()
+    // 递归调用renderer渲染subtree
+    renderer(subtree, container)
+}
 
+// 执行渲染
 renderer(vnode, document.body)
